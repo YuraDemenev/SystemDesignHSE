@@ -87,7 +87,7 @@ jobs:
 
 #-------------------------------------------------------------------------------
    
-        - run: ping -c 10 10.0.1.13
+        - run: ping -c 10 10.0.1.12
 
         - name: Checkout master
           uses: actions/checkout@v2

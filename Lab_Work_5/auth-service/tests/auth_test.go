@@ -15,21 +15,19 @@ type User struct {
 }
 
 func TestRegisterHandler(t *testing.T) {
-	{
-		user := authservice.User{Username: "testuser", Password: "testpass"}
-		body, _ := json.Marshal(user)
-		req, err := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
-		if err != nil {
-			t.Fatal(err)
-		}
+	user := authservice.User{Username: "testuser", Password: "testpass"}
+	body, _ := json.Marshal(user)
+	req, err := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(authservice.RegisterHandler)
-		handler.ServeHTTP(rr, req)
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(authservice.RegisterHandler)
+	handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusCreated {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusCreated)
-		}
+	if status := rr.Code; status != http.StatusCreated {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusCreated)
 	}
 }
 
