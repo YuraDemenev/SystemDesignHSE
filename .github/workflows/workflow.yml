@@ -93,7 +93,9 @@ jobs:
 
         - name: Deploy to server
           run: |
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > key
+            echo << EOF
+            ${{ secrets.SSH_PRIVATE_KEY }}
+            EOF > key
             ssh ${{ secrets.SERVER_USER }}@10.0.1.13 -i key << EOF
             docker-compose down
             docker-compose up -d
