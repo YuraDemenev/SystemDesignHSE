@@ -33,6 +33,7 @@ func TestCreateTaskHandler(t *testing.T) {
 }
 
 func TestGetTasksHandler(t *testing.T) {
+	taskservice.Tasks = make([]taskservice.Task, 0)
 	taskservice.Tasks = append(taskservice.Tasks, taskservice.Task{ID: -1, Text: "Test task"})
 	req, err := http.NewRequest("GET", "/tasks/list", nil)
 	if err != nil {
