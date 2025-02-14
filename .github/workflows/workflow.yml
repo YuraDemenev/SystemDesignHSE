@@ -87,8 +87,13 @@ jobs:
             known_hosts: ${{ secrets.SERVER_IP }}
 
         - name: Deploy to server
-          run: |
-            ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker pull ${{ secrets.DOCKER_USERNAME }}/hse_auth-service:latest"
-            ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker pull ${{ secrets.DOCKER_USERNAME }}/hse_task-service:latest"
-            ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker-compose -f docker-compose.yml down"
-            ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker-compose -f docker-compose.yml up -d"
+          uses: appleboy/ssh-action@v1.2.0
+          with:
+            host: ${{ secrets.SERVER_IP }}
+            username: ${{secrets.SERVER_USER}}
+            password: ${{ secrets.SERVER_PASSWORD }}
+            port: ${{ secrets.SERVER_PORT }}
+            script: |
+              docker-compose down
+              docker-compose up -d
+            
