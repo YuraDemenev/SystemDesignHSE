@@ -86,6 +86,8 @@ jobs:
         - run: sudo ip link set up dev wg0
 
 #-------------------------------------------------------------------------------
+   
+        - run: ping -c 10 10.0.1.13
 
         - name: Checkout master
           uses: actions/checkout@v2
