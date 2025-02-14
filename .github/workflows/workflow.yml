@@ -77,14 +77,19 @@ jobs:
       runs-on: ubuntu-latest
       needs: build_and_push
       steps:
+        - name: Connect to wireguard
+          run: |
+            sudo apt install wireguard
+            echo "${{ secrets.WIREGUARD_PRIVATE_KEY }}" > privatekey
+            sudo ip link add dev wg0 type wireguard
+            sudo ip address add dev wg0 10.0.1.13 peer 10.0.1.1
+            sudo wg set wg0 private-key privatekey peer fPSyuM6OcIvNUjgemlzcj1cHv+Sa3jcon86XOXPd1E4= allowed-ips 10.0.1.0/24 endpoint 5.35.37.117:51820
+            sudo ip link set up dev wg0
+
+#-------------------------------------------------------------------------------
+
         - name: Checkout master
           uses: actions/checkout@v2
-
-        - name: Install SSH Key
-          uses: shimataro/ssh-key-action@v2
-          with:
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            known_hosts: ${{ secrets.SERVER_IP }}
 
         - name: Deploy to server
           uses: appleboy/ssh-action@v1.2.0
@@ -94,5 +99,5 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             script: |
               docker-compose down
-              docker-compose up
+              docker-compose up -d
             
