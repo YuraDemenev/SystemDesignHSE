@@ -88,7 +88,9 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{secrets.SERVER_IP}} -i key << EOF
           EOF
       - name: Open folder with docker compose file 
-        run: cd ~/hse_micro_services
+        run: |
+         cd ~
+         cd ~/hse_micro_services
       - name: Down docker containers
         run: sudo docker-compose down
       - name: Pull and up docker containers
