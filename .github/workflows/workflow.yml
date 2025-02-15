@@ -90,4 +90,3 @@ jobs:
             cd hse_micro_services/
             docker-compose down
             docker-compose up -d
-            
