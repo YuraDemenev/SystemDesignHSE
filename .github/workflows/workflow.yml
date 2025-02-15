@@ -80,14 +80,18 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@v2
 
-      - name: Deploy to server
+      - name: Connect to server
         run: |
           echo << EOF
           ${{ secrets.SSH_PRIVATE_KEY }}
           EOF > key
           ssh ${{ secrets.SERVER_USER }}@${{secrets.SERVER_IP}} -i key << EOF
-          cd ~/hse_micro_services
-          sudo docker-compose down
+          EOF
+      - name: Open folder with docker compose file 
+        run: cd ~/hse_micro_services
+      - name: Down docker containers
+        run: sudo docker-compose down
+      - name: Pull and up docker containers
+        run: |        
           sudo docker-compose pull
           sudo docker-compose up -d
-          EOF
