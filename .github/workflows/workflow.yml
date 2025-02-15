@@ -94,7 +94,7 @@ jobs:
             cd ./src
             cd hse_micro_services
             # Down docker containers
-            docker-compose down
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose down
             # Pull and up docker containers
-            docker-compose pull
-            docker-compose up -d
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose pull
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose up -d
