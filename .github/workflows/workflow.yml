@@ -85,7 +85,7 @@ jobs:
           echo << EOF
           ${{ secrets.SSH_PRIVATE_KEY }}
           EOF > key
-          ssh ${{ secrets.SERVER_USER }}@${{secrets.SERVER_IP}} -i key << EOF
+          ssh ${{ secrets.SERVER_USER }}@${{secrets.SERVER_IP}} >> ~/.ssh/ -i key << EOF
           EOF
       - name: Open folder with docker compose file 
         run: |
