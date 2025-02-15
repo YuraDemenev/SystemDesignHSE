@@ -97,3 +97,5 @@ jobs:
             # Pull and up docker containers
             sudo docker-compose pull
             sudo docker-compose up -d
+
+            
