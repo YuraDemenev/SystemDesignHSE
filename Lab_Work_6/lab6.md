@@ -1,9 +1,14 @@
 # Порождающие шаблоны (Creational Patterns)
+
 ## 1 Singleton
+
 ### Описание:
+
 В Android для хранения небольших, но важных для приложения данных используется dataStore. Он позволяет
 хранить данные локально и удобно их получать.
+
 ### Реализация:
+
 ```
 // Singleton для управления доступом к DataStore
 object UserDataStore {
@@ -21,7 +26,7 @@ object UserDataStore {
             newUser
         }
     }
-}  
+}
 
 suspend fun updateUserExample(context: Context) {
     UserDataStore.initialize(context)
@@ -32,11 +37,18 @@ suspend fun updateUserExample(context: Context) {
     }
 }
 ```
+
+![Singleton](Singleton.jpg "Singleton")
+
 ## 2 Prototype
+
 ### Пояснение:
+
 В Android приложении я использую userFlow. Который позволяет иметь 1 пользователя находящегося в Flow. Можно сделать Observer, который будет следить за определенным свойством пользователя в userFlow, после изменения user, будет изменён UI.
 Prototype заключается в том-что получая user из userFlow мы получаем копию, которую изменяем и потом добавляет в userFlow.
+
 ### Реализация:
+
 ```
 class UserViewModel : ViewModel() {
     //Позволяет менять данные
@@ -53,8 +65,13 @@ class UserViewModel : ViewModel() {
     }
 }
 ```
+
+![Prototype](Prototype.jpg "Prototype")
+
 ## 3 Builder
+
 ### Реализация:
+
 ```
 data class User(
     val userId: String,
@@ -137,10 +154,17 @@ val user = User.Builder()
     .setCountRepeatedWordsToday(3)
     .build()
 ```
+
+![Builder](Builder.jpg "Builder")
+
 # Структурные шаблоны (Structural Patterns):
+
 ## 1 Facade:
+
 ### Пояснение:
+
 В Android приложении есть база данных SQLite. Взаимодействие происходит через интерфейс WordsDAO.
+
 ```
 interface WordsDAO {
     //Upsert объединение insert и update
@@ -157,16 +181,25 @@ interface WordsDAO {
     suspend fun insertWordsLevel(wordsLevel: WordsLevels)
     ...
 }
-``` 
+```
+
 Шаблон Facade реализуется в том что мы получаем доступ ко всем функциям взаимодействия с Базой данных через один интерфейс
+
 ```
 val db = MainDB.getDB(thisContext)
 db.getDao().updateWordLevelsStage(word.id, stageChanged, dateLearn)
 ```
+
+![Facade](Facade.jpg "Facade")
+
 ## 2 Bridge
+
 ### Пояснение:
+
 Для реализации рендернинга элементов в светлой и тёмной теме используется Bridge
+
 ### Реализация:
+
 ```
 interface ThemeRenderer {
     @Composable
@@ -176,7 +209,9 @@ interface ThemeRenderer {
     fun RenderLearnWordsButton(onClick: () -> Unit)
 }
 ```
+
 Класс для светлой темы
+
 ```
 class LightThemeRenderer : ThemeRenderer {
     @Composable
@@ -195,7 +230,9 @@ class LightThemeRenderer : ThemeRenderer {
     }
 }
 ```
+
 Класс для тёмной темы
+
 ```
 class DarkThemeRenderer : ThemeRenderer {
     @Composable
@@ -214,14 +251,18 @@ class DarkThemeRenderer : ThemeRenderer {
     }
 }
 ```
+
 абстрактный UI элемент
+
 ```
 abstract class UIElement(protected val renderer: ThemeRenderer) {
     @Composable
     abstract fun Render()
 }
 ```
+
 Конкретные элементы
+
 ```
 class Background(renderer: ThemeRenderer) : UIElement(renderer) {
     @Composable
@@ -237,7 +278,9 @@ class LearnWordsButton(renderer: ThemeRenderer, private val onClick: () -> Unit)
     }
 }
 ```
+
 Реализация
+
 ```
 @Composable
 //Проверяем включана ли тёмная тема, в зависимости от этого создаем ThemerRender.
@@ -259,13 +302,120 @@ fun MainScreen(isDarkMode: Boolean) {
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
+```
+
+![Bridge](Bridge.jpg "Bridge")
+
+## 3 Adapter
+
+### Пояснение
+
+Для того чтобы преобразовывать для отправки данные по api можно использовать Adapter и конвертировать мой class Words в Json.
+
+### Реализация:
 
 ```
+import org.json.JSONObject
+
+// Модель данных приложения
+data class Word(val text: String, val meaning: String)
+
+// Адаптер для преобразования Word в JSON
+class WordToJsonAdapter(private val word: Word) {
+    fun toJson(): String {
+        val jsonObject = JSONObject()
+        jsonObject.put("text", word.text)
+        jsonObject.put("meaning", word.meaning)
+        return jsonObject.toString()
+    }
+}
+
+// Пример использования
+fun main() {
+    val word = Word(text = "hello", meaning = "привет")
+    val adapter = WordToJsonAdapter(word)
+
+    val json = adapter.toJson()
+    println(json)  // Output: {"text":"hello","meaning":"привет"}
+}
+```
+
+![Adapter](Adapter.jpg "Adapter")
+
+## 4 Decorator
+
+### Пояснение
+
+Интерфейс Word: Определяет метод display, который реализуют все слова.
+Класс BasicWord: Базовый объект слова.
+Класс WordDecorator: Базовый декоратор, который реализует интерфейс Word и принимает другой объект Word, оборачивая его.
+ViewedWordDecorator: Декоратор, добавляющий функциональность "слово просмотрено".
+LearnedWordDecorator: Декоратор, добавляющий функциональность "слово изучено".
+Использование: Слово сначала декорируется для добавления статуса "просмотрено", затем повторно декорируется для добавления статуса "изучено".
+
+### Реализация
+
+```
+// Базовый интерфейс
+interface Word {
+    fun display(): String
+}
+
+// Конкретная реализация Word
+class BasicWord(private val text: String, private val meaning: String) : Word {
+    override fun display(): String {
+        return "Word: $text, Meaning: $meaning"
+    }
+}
+
+// Базовый декоратор
+abstract class WordDecorator(protected val decoratedWord: Word) : Word {
+    override fun display(): String {
+        return decoratedWord.display()
+    }
+}
+
+// Декоратор для добавления функциональности "просмотрено"
+class ViewedWordDecorator(decoratedWord: Word) : WordDecorator(decoratedWord) {
+    override fun display(): String {
+        return "${super.display()} [Viewed]"
+    }
+}
+
+// Декоратор для добавления функциональности "изучено"
+class LearnedWordDecorator(decoratedWord: Word) : WordDecorator(decoratedWord) {
+    override fun display(): String {
+        return "${super.display()} [Learned]"
+    }
+}
+
+// Пример использования
+fun main() {
+    val word = BasicWord("hello", "привет")
+    println(word.display()) // Output: Word: hello, Meaning: привет
+
+    // Добавляем "просмотрено"
+    val viewedWord = ViewedWordDecorator(word)
+    println(viewedWord.display()) // Output: Word: hello, Meaning: привет [Viewed]
+
+    // Добавляем "изучено"
+    val learnedAndViewedWord = LearnedWordDecorator(viewedWord)
+    println(learnedAndViewedWord.display()) // Output: Word: hello, Meaning: привет [Viewed] [Learned]
+}
+```
+
+![Decorator](Decorator.jpg "Decorator")
+
 # Поведенчиские шаблоны
+
 ## 1 Observer (Наблюдатель):
+
 ### Пояснение:
+
 Для изменения UI элементов, когда происходит изменения данных пользователя я использовал Observer
+
 ### Реализация:
+
 ```
 //Добавляем кол-во слов для повторения
 userViewModel.user.observe(viewLifecycleOwner) { userObserve ->
@@ -278,11 +428,18 @@ userViewModel.user.observe(viewLifecycleOwner) { userObserve ->
         "Выучено сегодня новых слов: ${userObserve.countLearnedWordsToday}"
 }
 ```
+
+![Observer](Observer.jpg "Observer")
+
 ## 2 Command
+
 ### Пояснение:
+
 В приложении на главной страницы есть несколько кнопок: Учить новые слова, повторить слова, повторить все слова.
 Для их реализации используется паттерн Command
+
 ### Реализация:
+
 ```
 // Интерфейс команды
 interface Command {
@@ -325,3 +482,229 @@ class WordsReceiver {
 }
 ```
 
+![Command](Command.jpg "Command")
+
+## 3 Strategy:
+
+### Пояснение:
+
+Позволяет определить семейство алгоритмов, инкапсулировать их и делать взаимозаменяемыми. Легче реализовать разные методы изучения слов: метод карточек, метод написания, метод повторения. Можно создать интерфейс для стратегии обучения и реализовать несколько конкретных стратегий. При изменении потребностей пользователя стратегия легко меняется.
+
+### Реализация:
+
+```
+// Интерфейс стратегии
+interface LearningStrategy {
+    fun learn(word: String)
+}
+
+// Конкретная стратегия: Метод карточек
+class FlashcardLearningStrategy : LearningStrategy {
+    override fun learn(word: String) {
+        println("Учите слово '$word' с помощью карточек.")
+    }
+}
+
+// Конкретная стратегия: Метод написания
+class WritingLearningStrategy : LearningStrategy {
+    override fun learn(word: String) {
+        println("Учите слово '$word', записывая его.")
+    }
+}
+
+// Контекст, использующий стратегию
+class LearningContext(private var strategy: LearningStrategy) {
+    fun setStrategy(newStrategy: LearningStrategy) {
+        strategy = newStrategy
+    }
+
+    fun learnWord(word: String) {
+        strategy.learn(word)
+    }
+}
+
+// Пример использования
+fun main() {
+    val context = LearningContext(FlashcardLearningStrategy())
+    context.learnWord("hello")
+
+    context.setStrategy(WritingLearningStrategy())
+    context.learnWord("world")
+}
+```
+
+![Strategy](Strategy.jpg "Strategy")
+
+## 4 State
+
+### Пояснение:
+
+Позволяет объекту изменять свое поведение при изменении его внутреннего состояния. Это полезно для управления режимами работы приложения.Можно реализовать состояния приложения, например "Учебный режим", "Режим повтора" и "Режим завершения". Каждое состояние будет определять, какие действия доступны и как ведет себя интерфейс пользователя.
+
+### Реализация
+
+```
+// Интерфейс состояния
+interface AppState {
+    fun onEnterState()
+    fun onAction()
+}
+
+// Конкретное состояние: Учебный режим
+class LearningState(private val context: AppContext) : AppState {
+    override fun onEnterState() {
+        println("Вход в режим 'Учеба'.")
+    }
+
+    override fun onAction() {
+        println("Учим новые слова.")
+    }
+}
+
+// Конкретное состояние: Режим повтора
+class ReviewingState(private val context: AppContext) : AppState {
+    override fun onEnterState() {
+        println("Вход в режим 'Повторение'.")
+    }
+
+    override fun onAction() {
+        println("Повторяем изученные слова.")
+    }
+}
+
+// Конкретное состояние: Завершение
+class CompletedState(private val context: AppContext) : AppState {
+    override fun onEnterState() {
+        println("Вход в режим 'Завершение'.")
+    }
+
+    override fun onAction() {
+        println("Обучение завершено.")
+    }
+}
+
+// Контекст, управляющий состояниями
+class AppContext {
+    private var state: AppState? = null
+
+    fun setState(newState: AppState) {
+        state = newState
+        state?.onEnterState()
+    }
+
+    fun performAction() {
+        state?.onAction()
+    }
+}
+
+// Пример использования
+fun main() {
+    val context = AppContext()
+
+    context.setState(LearningState(context))
+    context.performAction()
+
+    context.setState(ReviewingState(context))
+    context.performAction()
+
+    context.setState(CompletedState(context))
+    context.performAction()
+}
+```
+
+![State](State.jpg "State")
+
+## Mediator
+
+### Пояснение:
+
+Обеспечивает централизованное управление взаимодействиями между различными объектами. Это снижает связанность между ними.
+Можно использовать для управление взаимодействиями между несколькими элементами пользовательского интерфейса. Например, изменение текстового поля может автоматически обновлять список слов, а также кнопки обучения и повтора через посредника.
+
+### Реализация:
+
+```
+// Интерфейс посредника
+interface Mediator {
+    fun notify(sender: Any, event: String)
+}
+
+// Конкретный посредник
+class LearningMediator(
+    private val textField: TextFieldComponent,
+    private val button: ButtonComponent,
+    private val listView: ListViewComponent
+) : Mediator {
+
+    textField.setMediator(this)
+    button.setMediator(this)
+    listView.setMediator(this)
+
+    override fun notify(sender: Any, event: String) {
+        when (event) {
+            "TextChanged" -> {
+                println("Обновляем список слов на основе текста: ${textField.getText()}.")
+                listView.update(textField.getText())
+            }
+            "ButtonClicked" -> {
+                println("Кнопка нажата. Обновляем все компоненты.")
+                textField.clear()
+                listView.refresh()
+            }
+        }
+    }
+}
+
+// Компоненты
+abstract class Component(protected var mediator: Mediator? = null) {
+    fun setMediator(mediator: Mediator) {
+        this.mediator = mediator
+    }
+}
+
+class TextFieldComponent : Component() {
+    private var text: String = ""
+
+    fun setText(newText: String) {
+        text = newText
+        mediator?.notify(this, "TextChanged")
+    }
+
+    fun getText(): String = text
+
+    fun clear() {
+        text = ""
+        println("Текстовое поле очищено.")
+    }
+}
+
+class ButtonComponent : Component() {
+    fun click() {
+        mediator?.notify(this, "ButtonClicked")
+    }
+}
+
+class ListViewComponent : Component() {
+    fun update(filter: String) {
+        println("Обновляем список на основе фильтра: $filter.")
+    }
+
+    fun refresh() {
+        println("Список обновлен.")
+    }
+}
+
+// Пример использования
+fun main() {
+    val textField = TextFieldComponent()
+    val button = ButtonComponent()
+    val listView = ListViewComponent()
+
+    val mediator = LearningMediator(textField, button, listView)
+
+    textField.setText("hello")
+    button.click()
+}
+```
+
+![Mediator](Mediator.jpg "Mediator")
